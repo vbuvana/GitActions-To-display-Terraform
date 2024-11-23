@@ -1,0 +1,52 @@
+name: "Terraform"
+
+on:
+    push:
+        branches:
+            - main
+
+
+jobs:
+    terraform:
+        name: "Terraform" #jobname and workflow name should be same to track easily
+        runs-on: ubuntu-latest # to execute a terraform file
+
+        env:
+            #To access the AWS credentials.
+
+            AWS_ACCESS_KEY_ID: ${{secrets.AWS_ACCESS_KEY_ID}}
+            AWS_SECRET_ACCESS_KEY: ${{secrets.AWS_SECRET_ACCESS_KEY}}
+            AWS_SESSION_TOKEN: ${{secrets.AWS_SESSION_TOKEN}}
+        #to specify the terraform command exec becasse workflow and .tf files are differed
+        defaults: 
+            run:
+                working-directory: src        
+        steps:
+        #is going to copy the files from remote repo and paste into ubuntu
+            - name: Checkout 
+              uses: actions/checkout@v2
+        #to setup the terraform CLI on remote ubuntu machine
+            - name: Setup Terraform
+              uses: hashicorp/setup-terraform@v1
+              with:
+                terraform_version: 1.0.1
+                #by default terrafirm wil install and it consume more space
+                terraform_wrapper: false
+            
+            - name: Terraform initialiasation
+              #id is an optional
+              id: init
+              run: terraform init
+
+            - name: Terraform planning
+              id: plan
+              run: terraform plan
+
+            - name: Terraform apply infrastructure
+              run: terraform apply -auto-approve
+            # with the condition we can write
+            #- name: Terraform destroy infrastructure
+             # run: terraform destroy -auto-approve
+              
+
+
